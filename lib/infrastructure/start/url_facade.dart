@@ -16,6 +16,8 @@ class UrlFacade extends IUrlFacade {
             APIConfig.URL + APIConfig.obtainProcessingData,
           );
 
+      Logger().d(response.data);
+
       var data = ObtainDataResponse.fromJson(response.data);
 
       return data;

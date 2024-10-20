@@ -1,8 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:logger/logger.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
-
-import 'endpoints_config.dart';
 
 class DioConfig {
   static final DioConfig _singleton = DioConfig._internal();
@@ -20,16 +17,20 @@ class DioConfig {
     dio.options.headers = {"accept": "application/json"};
 
     dio.interceptors.add(
-      QueuedInterceptorsWrapper(onRequest: (options, handler) async {
-        return handler.next(options);
-      }, onResponse: (response, handler) async {
-        return handler.next(response);
-      }, onError: (e, handler) async {
-        Logger().f(
-            '------------ ERROR STATUS ${e.response?.statusCode}  ${e.requestOptions.uri.toString().replaceAll(APIConfig.URL, '').trim()}------------');
+      QueuedInterceptorsWrapper(
+        onRequest: (options, handler) async {
+          return handler.next(options);
+        },
+        onResponse: (response, handler) async {
+          return handler.next(response);
+        },
+        // onError: (e, handler) async {
+        //   Logger().f(
+        //       '------------ ERROR STATUS ${e.response?.statusCode}  ${e.requestOptions.uri.toString().replaceAll(APIConfig.URL, '').trim()}------------');
 
-        return handler.next(e);
-      }),
+        //   return handler.reject(e);
+        // }
+      ),
     );
 
     dio.interceptors.add(

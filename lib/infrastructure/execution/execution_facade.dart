@@ -15,10 +15,14 @@ class ExecutionFacade extends IExecutionFacade {
     SendResultingDataRequest request,
   ) async {
     try {
+      Logger().w(request.toJson());
+
       var response = await getIt<DioConfig>().dio.post(
             APIConfig.URL + APIConfig.sendResultingData,
             data: request.toJson(),
           );
+
+      Logger().d(response.data);
 
       var data = SendResultingDataResponse.fromJson(response.data);
 

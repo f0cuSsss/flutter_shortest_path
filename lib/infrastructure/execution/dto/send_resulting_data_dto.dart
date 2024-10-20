@@ -45,10 +45,11 @@ class SendResultingDataResponse extends BaseResponse
     List<SendResultingDataDto>? parsedData;
 
     if (json['data'] is List) {
-      parsedData = json['data']
+      parsedData = (json['data'] as List)
           .map((item) =>
               SendResultingDataDto.fromJson(item as Map<String, dynamic>))
-          .toList();
+          .toList()
+          .cast<SendResultingDataDto>();
     } else if (json['data'] is Map<String, dynamic>) {
       parsedData = null;
     }
@@ -62,7 +63,6 @@ class SendResultingDataResponse extends BaseResponse
 
   @override
   Map<String, dynamic> toJson() {
-    // TODO: implement toJson
-    throw UnimplementedError();
+    return {};
   }
 }

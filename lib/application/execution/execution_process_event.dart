@@ -8,6 +8,8 @@ final class UrlChanged extends ExecutionProcessEvent {
   UrlChanged(this.url);
 }
 
-final class SaveUrl extends ExecutionProcessEvent {}
+final class ObtainDataAndStartProcessing extends ExecutionProcessEvent {}
 
-final class ObtainData extends ExecutionProcessEvent {}
+final class SendResults extends ExecutionProcessEvent {}
+
+final class NavigatedToProcessing extends ExecutionProcessEvent {}

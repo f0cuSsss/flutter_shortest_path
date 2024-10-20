@@ -1,4 +1,29 @@
 import 'package:flutter_shortest_path/domain/execution/point.dart';
+import 'package:flutter_shortest_path/domain/execution/result.dart';
+import 'package:flutter_shortest_path/domain/execution/result_item.dart';
+import 'package:flutter_shortest_path/domain/start/path_item.dart';
+
+class ShortestPathService {
+  ResultItem? findShortestPath(
+    PathItem item,
+  ) {
+    ShortestPathSearcher pathFinder =
+        ShortestPathSearcher(item.field, item.start, item.end);
+    List<Point> path = pathFinder.getShortestPath();
+
+    return path.isEmpty
+        ? null
+        : ResultItem(
+            item.id,
+            Result(
+              path
+                  .map((pos) => PointString(pos.x.toString(), pos.y.toString()))
+                  .toList(),
+              path.map((pos) => '(${pos.x},${pos.y})').join('->'),
+            ),
+          );
+  }
+}
 
 class ShortestPathSearcher {
   final List<String> grid;
@@ -12,11 +37,8 @@ class ShortestPathSearcher {
   static const int minGridSize = 2;
   static const int maxGridSize = 99;
 
-  ShortestPathSearcher(
-    this.grid,
-    this.start,
-    this.end,
-  )   : rows = grid.length,
+  ShortestPathSearcher(this.grid, this.start, this.end)
+      : rows = grid.length,
         cols = grid[0].length {
     if (rows < minGridSize ||
         rows > maxGridSize ||
@@ -28,14 +50,14 @@ class ShortestPathSearcher {
   }
 
   final List<Point> directions = [
-    Point('-1', '-1'),
-    Point('-1', '0'),
-    Point('-1', '1'),
-    Point('0', '-1'),
-    Point('0', '1'),
-    Point('1', '-1'),
-    Point('1', '0'),
-    Point('1', '1'),
+    Point(-1, -1),
+    Point(-1, 0),
+    Point(-1, 1),
+    Point(0, -1),
+    Point(0, 1),
+    Point(1, -1),
+    Point(1, 0),
+    Point(1, 1),
   ];
 
   bool isWithinBounds(int x, int y) {
@@ -46,7 +68,7 @@ class ShortestPathSearcher {
     return grid[x][y] == 'X';
   }
 
-  void findPath(Point current) {
+  void findPath(Point current, Set<Point> visited) {
     if (current.x == end.x && current.y == end.y) {
       if (shortestPath.isEmpty || currentPath.length < shortestPath.length) {
         shortestPath = List.from(currentPath);
@@ -55,53 +77,33 @@ class ShortestPathSearcher {
     }
 
     currentPath.add(current);
+    visited.add(current);
 
     for (var direction in directions) {
-      int x = int.parse(current.x);
-      int y = int.parse(current.y);
+      int newX = current.x + direction.x;
+      int newY = current.y + direction.y;
 
-      while (true) {
-        x += int.parse(direction.x);
-        y += int.parse(direction.y);
-
-        if (isWithinBounds(x, y) && !isBlocked(x, y)) {
-          findPath(Point(x.toString(), y.toString()));
-        } else {
-          break;
-        }
+      if (isWithinBounds(newX, newY) &&
+          !isBlocked(newX, newY) &&
+          !visited.contains(Point(newX, newY))) {
+        findPath(Point(newX, newY), visited);
       }
     }
 
     currentPath.removeLast();
+    visited.remove(current);
   }
 
-  List<Point> _getShortestPath() {
-    findPath(start);
-    return shortestPath;
-  }
+  List<Point> getShortestPath() {
+    Set<Point> visited = {start};
+    findPath(start, visited);
 
-  List<Map<String, dynamic>> findShortestPaths(
-    List<Map<String, dynamic>> data,
-  ) {
-    List<Map<String, dynamic>> results = [];
-
-    for (var item in data) {
-      List<String> grid = List<String>.from(item['field']);
-      Point start =
-          Point(item['start']['x'].toString(), item['start']['y'].toString());
-      Point end =
-          Point(item['end']['x'].toString(), item['end']['y'].toString());
-
-      ShortestPathSearcher pathFinder = ShortestPathSearcher(grid, start, end);
-      List<Point> path = pathFinder._getShortestPath();
-
-      results.add({
-        'start': {'x': start.x, 'y': start.y},
-        'end': {'x': end.x, 'y': end.y},
-        'path': path.map((pos) => {'x': pos.x, 'y': pos.y}).toList(),
-      });
+    List<Point> fullPath = [];
+    fullPath.addAll(shortestPath);
+    if (!shortestPath.contains(end)) {
+      fullPath.add(end);
     }
 
-    return results;
+    return fullPath;
   }
 }
